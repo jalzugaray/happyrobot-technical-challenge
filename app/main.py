@@ -2,6 +2,7 @@ import os, httpx
 from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from .security import verify_api_key
+from .fmcsa_verification import check_mc_active
 
 WF2_URL  = os.getenv("WF2_URL")
 WF2_KEY  = os.getenv("WF2_API_KEY")
@@ -29,12 +30,20 @@ class CallSchema(BaseModel):
     carrier_phone: str
     carrier_mc_number: str
     type_of_call: str
+    validate_carrier: str
 
 app = FastAPI(title="Simple Dedup Router")
 
 @app.post("/process-load", dependencies=[Depends(verify_api_key)])
 async def process_load(call: CallSchema):
     payload = call.model_dump()
+
+    # fmcsa validation
+    if call.validate_carrier == "yes":
+        result = await check_mc_active(call.carrier_mc_number)
+        if result["abort"]:
+            return {"status": "carrier_validation_failed",
+                    "reason": result["reason"]}
 
     if call.type_of_call == "new_call":
         if payload in new_calls_list:
