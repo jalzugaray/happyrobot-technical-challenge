@@ -1,5 +1,13 @@
+"""
+FMCSA Carrier Verification Module
+
+This module provides functionality to verify carrier MC numbers through the FMCSA API.
+It checks if a carrier is active and authorized to operate.
+"""
+
 import os, httpx
 
+# FMCSA API configuration
 FMC_WEB_KEY = os.getenv("FMC_WEB_KEY")
 BASE = "https://mobile.fmcsa.dot.gov/qc/services/carriers/docket-number/{}"
 
@@ -8,8 +16,24 @@ if not FMC_WEB_KEY:
 
 async def check_mc_active(mc_number: str) -> dict:
     """
-    Returns {"abort": True, "reason": "..."}  when MC is invalid / inactive,
-            {"abort": False}                  when everything is OK.
+    Verify if a carrier's MC number is active and authorized to operate.
+    
+    This function queries the FMCSA API to check the status of a carrier's MC number.
+    It returns a dictionary indicating whether the carrier is valid and active.
+    
+    Args:
+        mc_number: The carrier's MC number to verify
+        
+    Returns:
+        dict: A dictionary with the following structure:
+            - If carrier is invalid/inactive:
+                {"abort": True, "reason": "error message"}
+            - If carrier is valid and active:
+                {"abort": False}
+                
+    Raises:
+        RuntimeError: If FMC_WEB_KEY environment variable is not set
+        httpx.RequestError: If there's an error communicating with the FMCSA API
     """
     url = BASE.format(mc_number)
     params = {"webKey": FMC_WEB_KEY}
