@@ -3,6 +3,9 @@ from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from .security import verify_api_key
 from .fmcsa_verification import check_mc_active
+import pandas as pd
+
+app = FastAPI(title="Simple Router")
 
 WF2_URL  = os.getenv("WF2_URL")
 WF2_KEY  = os.getenv("WF2_API_KEY")
@@ -31,8 +34,6 @@ class CallSchema(BaseModel):
     carrier_mc_number: str
     type_of_call: str
     validate_carrier: str
-
-app = FastAPI(title="Simple Dedup Router")
 
 @app.post("/process-load", dependencies=[Depends(verify_api_key)])
 async def process_load(call: CallSchema):
@@ -82,3 +83,27 @@ async def process_load(call: CallSchema):
             )
 
     return {"status": "forwarded"}
+
+
+class CallAnalytics(BaseModel):
+    carrier_phone: str
+    carrier_name: str
+    call_duration_sec: int
+    outcome: str
+    sentiment: str
+    rate_usd: float | None = None
+    origin: str
+    destination: str
+    miles: int
+
+# global in‑memory DataFrame to accumulate call analytics
+analytics_df = pd.DataFrame(columns=CallAnalytics.model_fields.keys())
+
+@app.post("/process-call", dependencies=[Depends(verify_api_key)])
+async def process_call(call: CallAnalytics):
+    global analytics_df
+
+    row = call.model_dump()
+    analytics_df.loc[len(analytics_df)] = row
+
+    return {"status": "logged"}
