@@ -88,13 +88,13 @@ async def process_load(call: CallSchema):
 class CallAnalytics(BaseModel):
     carrier_phone: str
     carrier_name: str
-    call_duration_sec: int
+    call_duration_sec: str
     outcome: str
     sentiment: str
-    rate_usd: float | None = None
+    rate_usd: str | None = None
     origin: str
     destination: str
-    miles: int
+    miles: str
 
 # global in‑memory DataFrame to accumulate call analytics
 analytics_df = pd.DataFrame(columns=CallAnalytics.model_fields.keys())
@@ -104,6 +104,10 @@ async def process_call(call: CallAnalytics):
     global analytics_df
 
     row = call.model_dump()
+    row["call_duration_sec"] = int(row["call_duration_sec"])
+    row["rate_usd"] = float(row["rate_usd"]) if row["rate_usd"] not in (None, "", "N/A") else pd.NA
+    row["miles"] = int(row["miles"])
+    
     analytics_df.loc[len(analytics_df)] = row
 
     return {"status": "logged"}
