@@ -1,5 +1,6 @@
 import os, httpx
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from .security import verify_api_key
 from .fmcsa_verification import check_mc_active
@@ -143,3 +144,10 @@ def compute_metrics():
 @app.get("/metrics", dependencies=[Depends(verify_api_key)])
 def get_metrics():
     return compute_metrics()
+
+
+templates = Jinja2Templates(directory="app/templates")
+# ---------- Simple HTML dashboard ---------------------------
+@app.get("/dashboard", dependencies=[Depends(verify_api_key)])
+def dashboard(request: Request):
+    return templates.TemplateResponse("dashboard.html", {"request": request})
