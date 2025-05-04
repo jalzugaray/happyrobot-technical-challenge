@@ -111,3 +111,35 @@ async def process_call(call: CallAnalytics):
     analytics_df.loc[len(analytics_df)] = row
 
     return {"status": "logged"}
+
+# metrics for dashboard
+def compute_metrics():
+    if analytics_df.empty:
+        return dict(acceptance_rate=0, connection_rate=0,
+                    avg_rate_usd=0, total_rate_usd=0)
+
+    connected_df = analytics_df[analytics_df["outcome"] != "voicemail"]
+    acceptance_rate = (
+        len(connected_df[connected_df["outcome"] == "accept"]) /
+        len(connected_df)
+    ) if len(connected_df) else 0
+
+    connection_rate = (
+        len(connected_df) / len(analytics_df)
+    )
+
+    rate_series = connected_df["rate_usd"].dropna().astype(float)
+    avg_rate = rate_series.mean() if not rate_series.empty else 0
+    total_rate = rate_series.sum() if not rate_series.empty else 0
+
+    return dict(
+        acceptance_rate=acceptance_rate,
+        connection_rate=connection_rate,
+        avg_rate_usd=avg_rate,
+        total_rate_usd=total_rate,
+    )
+
+# ---------- JSON endpoint -----------------------------------
+@app.get("/metrics", dependencies=[Depends(verify_api_key)])
+def get_metrics():
+    return compute_metrics()
