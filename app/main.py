@@ -129,7 +129,7 @@ def compute_metrics():
         len(connected_df) / len(analytics_df)
     )
 
-    rate_series = connected_df["rate_usd"].dropna().astype(float)
+    rate_series = connected_df[connected_df["outcome"] == "accept"]["rate_usd"].dropna().astype(float)
     avg_rate = rate_series.mean() if not rate_series.empty else 0
     total_rate = rate_series.sum() if not rate_series.empty else 0
 
