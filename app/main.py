@@ -10,6 +10,7 @@ if not WF2_URL or not WF2_KEY:
 
 # in‑memory list of new‑calls we already dialed
 new_calls_list: list[dict] = []
+voicemail_retry: list[dict] = []
 
 class CallSchema(BaseModel):
     origin: str
@@ -40,12 +41,35 @@ async def process_load(call: CallSchema):
             return {"status": "duplicate_skipped"}
         new_calls_list.append(payload)
 
-    # forward to workflow 2
-    async with httpx.AsyncClient() as client:
-        await client.post(
-            WF2_URL,
-            json=payload,
-            headers={"X-API-Key": WF2_KEY}
-        )
+        # forward to workflow 2
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                WF2_URL,
+                json=payload,
+                headers={"X-API-Key": WF2_KEY}
+            )
+    
+    elif call.type_of_call == "reschedule_call":
+        # forward to workflow 2
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                WF2_URL,
+                json=payload,
+                headers={"X-API-Key": WF2_KEY}
+            )
+    
+    elif call.type_of_call == "voicemail_retry":
+        retry_count = voicemail_retry.count(payload)
+        if retry_count == 3:
+            return {"status": "retry_limit_reached"}
+        voicemail_retry.append(payload)
+
+        # forward to workflow 2
+        async with httpx.AsyncClient() as client:
+            await client.post(
+                WF2_URL,
+                json=payload,
+                headers={"X-API-Key": WF2_KEY}
+            )
 
     return {"status": "forwarded"}
