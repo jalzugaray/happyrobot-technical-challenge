@@ -12,14 +12,13 @@
       --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
       --card-padding: 2rem;
       --gray-500: #6b7280;
-      --text-main: #0f172a;    
+      --text-main: #0f172a;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-      background: #f7f9fa;     
+      background: #f7f9fa;
       color: var(--text-main);
       padding: 2.5rem;
     }
@@ -56,6 +55,14 @@
       letter-spacing: 0.5px;
     }
 
+    /* NEW: definition text */
+    .card-desc {
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      color: var(--gray-500);
+      line-height: 1.3;
+    }
+
     footer {
       margin-top: 2rem;
       font-size: 0.875rem;
@@ -70,21 +77,33 @@
     <div class="card">
       <div class="card-title">Acceptance Rate</div>
       <div class="card-value" id="acceptance">–</div>
+      <div class="card-desc">
+        How often a connected carrier agrees to take the load.
+      </div>
     </div>
 
     <div class="card">
       <div class="card-title">Connection Rate</div>
       <div class="card-value" id="connection">–</div>
+      <div class="card-desc">
+        How often the dial actually reaches a live carrier versus voicemail.
+      </div>
     </div>
 
     <div class="card">
-      <div class="card-title">Average Rate</div>
+      <div class="card-title">Average Quoted Rate</div>
       <div class="card-value" id="avg-rate">–</div>
+      <div class="card-desc">
+        Typical dollar amount carriers quote when they give a price.
+      </div>
     </div>
 
     <div class="card">
       <div class="card-title">Total Revenue</div>
       <div class="card-value" id="total-rev">–</div>
+      <div class="card-desc">
+        Aggregate revenue exposure—sum of all valid quoted rates in the campaign.
+      </div>
     </div>
   </div>
 
@@ -121,8 +140,8 @@
         });
     }
 
-    loadMetrics();  
-    setInterval(loadMetrics, 15_000); 
+    loadMetrics();
+    setInterval(loadMetrics, 15_000);
   </script>
 </body>
 </html>
