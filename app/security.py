@@ -1,12 +1,16 @@
-# app/security.py
 import os
 from fastapi import Header, HTTPException
 
-API_KEY = os.getenv("API_KEY")           # must be set in Render (or locally)
+API_KEY = os.getenv("API_KEY")
 
-if API_KEY is None:
-    raise RuntimeError("API_KEY env‑var missing")
+if not API_KEY:
+    raise RuntimeError("API_KEY environment variable not set")
 
-def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key")):
-    if x_api_key != API_KEY:
-        raise HTTPException(401, "Unauthorized")
+def verify_api_key(authorization: str = Header(...)):
+    """Check for Authorization: Bearer <API_KEY>"""
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(401, detail="Missing Bearer token")
+    
+    token = authorization.replace("Bearer ", "", 1)
+    if token != API_KEY:
+        raise HTTPException(401, detail="Invalid API key")
