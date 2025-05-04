@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Carrier‑Campaign Metrics</title>
+  <title>Carrier Campaign Metrics</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; max-width: 600px; }
-    .metric { margin: 1rem 0; font-size: 1.4rem; }
-    .value  { font-weight: bold; color: #2563eb; }
+    body            { font-family: system-ui, sans-serif; padding: 2rem; max-width: 600px; }
+    h1              { margin-bottom: 1rem; }
+    .metric         { margin: 1rem 0; font-size: 1.25rem; }
+    .value          { font-weight: 600; color: #2563eb; }
   </style>
 </head>
 <body>
@@ -14,25 +15,35 @@
   <div id="metrics">Loading…</div>
 
   <script>
+    /* token injected by FastAPI/Jinja */
+    const API_KEY = "{{ dash_token }}";
+
     function loadMetrics() {
-      fetch("/metrics")
-        .then(r => r.json())
-        .then(m => {
-          document.getElementById("metrics").innerHTML = `
-            <div class="metric">Acceptance rate:
-                <span class="value">${(m.acceptance_rate*100).toFixed(1)}%</span></div>
-            <div class="metric">Connection rate:
-                <span class="value">${(m.connection_rate*100).toFixed(1)}%</span></div>
-            <div class="metric">Average quoted rate:
-                <span class="value">$${m.avg_rate_usd.toFixed(2)}</span></div>
-            <div class="metric">Total quoted rate:
-                <span class="value">$${m.total_rate_usd.toLocaleString()}</span></div>`;
-        })
-        .catch(() => { document.getElementById("metrics").textContent = "Error loading metrics"; });
+      fetch("/metrics", {
+        headers: { "Authorization": `Bearer ${API_KEY}` }
+      })
+      .then(r => {
+        if (!r.ok) throw new Error("Auth or server error");
+        return r.json();
+      })
+      .then(m => {
+        document.getElementById("metrics").innerHTML = `
+          <div class="metric">Acceptance rate:
+              <span class="value">${(m.acceptance_rate*100).toFixed(1)}%</span></div>
+          <div class="metric">Connection rate:
+              <span class="value">${(m.connection_rate*100).toFixed(1)}%</span></div>
+          <div class="metric">Average quoted rate:
+              <span class="value">$${m.avg_rate_usd.toFixed(2)}</span></div>
+          <div class="metric">Total quoted rate:
+              <span class="value">$${m.total_rate_usd.toLocaleString()}</span></div>`;
+      })
+      .catch(() => {
+        document.getElementById("metrics").textContent = "Error loading metrics";
+      });
     }
 
-    loadMetrics();                           // first load
-    setInterval(() => location.reload(), 15_000);   // auto‑refresh every 15 s
+    loadMetrics();                               // initial load
+    setInterval(() => location.reload(), 15_000); // auto‑refresh every 15 s
   </script>
 </body>
 </html>
