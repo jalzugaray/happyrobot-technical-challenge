@@ -188,7 +188,7 @@ def get_metrics():
 templates = Jinja2Templates(directory="app/templates")
 DASHBOARD_TOKEN = os.getenv("DASHBOARD_API_KEY", "test")   # default for dev
 # ---------- Simple HTML dashboard ---------------------------
-@app.get("/dashboard", dependencies=[Depends(verify_api_key)])
+@app.get("/dashboard")
 def dashboard(request: Request):
     """Serve the analytics dashboard UI."""
     return templates.TemplateResponse(
